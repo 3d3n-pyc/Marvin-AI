@@ -1,7 +1,7 @@
 {
   "name": "marvin-ai",
   "version": "1.0.0",
-  "description": "MyEpitech Marvin Assistant Firefox Extension (TypeScript + Ollama Cloud)",
+  "description": "Smart AI assistant for MyEpitech with live tracking of marks, credits, and projects",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
