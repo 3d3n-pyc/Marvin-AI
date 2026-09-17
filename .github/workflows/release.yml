@@ -1,6 +1,9 @@
 name: Automated Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       bump:
@@ -42,27 +45,41 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Generate Release & Changelog
+        id: release_step
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          node scripts/generate-release.mjs ${{ github.event.inputs.bump || 'patch' }}
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${{ github.ref_name }}"
+            node scripts/generate-release.mjs --tag "$TAG"
+            VERSION="${TAG#v}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "is_push=true" >> $GITHUB_OUTPUT
+          else
+            node scripts/generate-release.mjs ${{ github.event.inputs.bump || 'patch' }}
+            VERSION=$(node -p "require('./package.json').version")
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+            echo "is_push=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Commit & Tag Release
-        id: tag_version
+      - name: Commit & Tag Release (Workflow Dispatch only)
+        if: steps.release_step.outputs.is_push == 'false'
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION="${{ steps.release_step.outputs.version }}"
+          TAG="${{ steps.release_step.outputs.tag }}"
           git add package.json CHANGELOG.md
-          git commit -m "chore(release): v$VERSION [skip ci]" || echo "Aucun changement git à commiter"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git commit -m "chore(release): $TAG [skip ci]" || echo "Aucun changement git à commiter"
+          git tag -a "$TAG" -m "Release $TAG"
           git push origin HEAD --follow-tags
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ steps.tag_version.outputs.version }}"
-          name: "Marvin AI v${{ steps.tag_version.outputs.version }}"
+          tag_name: "${{ steps.release_step.outputs.tag }}"
+          name: "Marvin AI ${{ steps.release_step.outputs.tag }}"
           body_path: build/release-notes.md
           draft: false
           prerelease: false

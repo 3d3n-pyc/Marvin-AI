@@ -18,7 +18,9 @@ import { execSync } from 'node:child_process';
 
 const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
-const bumpType = args.find(a => !a.startsWith('--')) || 'patch';
+const tagArgIdx = args.indexOf('--tag');
+const explicitTag = tagArgIdx !== -1 ? args[tagArgIdx + 1] : null;
+const bumpType = explicitTag ? explicitTag.replace(/^v/, '') : (args.find(a => !a.startsWith('--')) || 'patch');
 
 const PKG_PATH = path.join(process.cwd(), 'package.json');
 const CHANGELOG_PATH = path.join(process.cwd(), 'CHANGELOG.md');
@@ -51,13 +53,13 @@ function computeNextVersion(current, bump) {
   }
 }
 
-const nextVersion = computeNextVersion(currentVersion, bumpType);
+const nextVersion = explicitTag ? explicitTag.replace(/^v/, '') : computeNextVersion(currentVersion, bumpType);
 
 console.log('========================================');
 console.log(' 🚀 MARVIN RELEASE GENERATOR');
 console.log('========================================');
 console.log(`Version actuelle : v${currentVersion}`);
-console.log(`Nouvelle version : v${nextVersion} (${bumpType})`);
+console.log(`Version cible    : v${nextVersion}${explicitTag ? ' (tag explicite)' : ` (${bumpType})`}`);
 if (isDryRun) console.log('⚠️  Mode DRY-RUN actif (aucune modification de fichier)');
 console.log('========================================\n');
 
@@ -203,64 +205,84 @@ async function fetchMergedPRs() {
 }
 
 async function run() {
-  const prList = await fetchMergedPRs();
-  console.log(`[Release] ${prList.length} PR(s) analysée(s).`);
+  let currentChangelog = '';
+  if (fs.existsSync(CHANGELOG_PATH)) {
+    currentChangelog = fs.readFileSync(CHANGELOG_PATH, 'utf8');
+  } else {
+    currentChangelog = '# Changelog\n\nToutes les modifications notables de ce projet sont consignées dans ce document.\n\n';
+  }
 
-  const categorized = {
-    Features: [],
-    Improvements: [],
-    Fixes: [],
-    Technical: [],
-  };
+  const cleanVer = nextVersion.replace(/^v/, '');
+  const existingSectionRegex = new RegExp(`##\\s*\\[?v?${cleanVer.replace(/\\./g, '\\.')}\\]?[^\\n]*\\n([\\s\\S]*?)(?=\\n##\\s|$)`);
+  const existingMatch = currentChangelog.match(existingSectionRegex);
 
-  const contributors = new Set();
+  let releaseMarkdown = '';
+  let alreadyInChangelog = false;
 
-  for (const pr of prList) {
-    const parsed = parsePRChangelog(pr.body);
-    if (parsed) {
-      if (pr.author && pr.author !== 'unknown') contributors.add(`@${pr.author}`);
-      for (const [key, items] of Object.entries(parsed)) {
-        if (categorized[key]) {
-          for (const item of items) {
-            categorized[key].push(`${item} ([#${pr.number}](${pr.htmlUrl}) par @${pr.author})`);
+  if (explicitTag && existingMatch) {
+    console.log(`[Release] Notes existantes pour v${cleanVer} trouvées dans CHANGELOG.md.`);
+    releaseMarkdown = `## [v${cleanVer}]\n\n${existingMatch[1].trim()}\n\n`;
+    alreadyInChangelog = true;
+  } else {
+    const prList = await fetchMergedPRs();
+    console.log(`[Release] ${prList.length} PR(s) analysée(s).`);
+
+    const categorized = {
+      Features: [],
+      Improvements: [],
+      Fixes: [],
+      Technical: [],
+    };
+
+    const contributors = new Set();
+
+    for (const pr of prList) {
+      const parsed = parsePRChangelog(pr.body);
+      if (parsed) {
+        if (pr.author && pr.author !== 'unknown') contributors.add(`@${pr.author}`);
+        for (const [key, items] of Object.entries(parsed)) {
+          if (categorized[key]) {
+            for (const item of items) {
+              categorized[key].push(`${item} ([#${pr.number}](${pr.htmlUrl}) par @${pr.author})`);
+            }
           }
         }
       }
     }
-  }
 
-  // Construction de la note de release
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const today = `${year}-${month}-${day}`;
-  let releaseMarkdown = `## [v${nextVersion}] - ${today}\n\n`;
+    // Construction de la note de release
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
+    releaseMarkdown = `## [v${nextVersion}] - ${today}\n\n`;
 
-  const SECTIONS = [
-    { key: 'Features', title: '🚀 Nouvelles fonctionnalités' },
-    { key: 'Improvements', title: '⚡ Améliorations' },
-    { key: 'Fixes', title: '🐛 Corrections de bugs' },
-    { key: 'Technical', title: '🛠️ Détails techniques' },
-  ];
+    const SECTIONS = [
+      { key: 'Features', title: '🚀 Nouvelles fonctionnalités' },
+      { key: 'Improvements', title: '⚡ Améliorations' },
+      { key: 'Fixes', title: '🐛 Corrections de bugs' },
+      { key: 'Technical', title: '🛠️ Détails techniques' },
+    ];
 
-  let hasEntries = false;
-  for (const sec of SECTIONS) {
-    const items = categorized[sec.key];
-    if (items && items.length > 0) {
-      hasEntries = true;
-      releaseMarkdown += `### ${sec.title}\n`;
-      items.forEach(i => releaseMarkdown += `- ${i}\n`);
-      releaseMarkdown += '\n';
+    let hasEntries = false;
+    for (const sec of SECTIONS) {
+      const items = categorized[sec.key];
+      if (items && items.length > 0) {
+        hasEntries = true;
+        releaseMarkdown += `### ${sec.title}\n`;
+        items.forEach(i => releaseMarkdown += `- ${i}\n`);
+        releaseMarkdown += '\n';
+      }
     }
-  }
 
-  if (!hasEntries) {
-    releaseMarkdown += `- Mises à jour de maintenance et optimisations diverses.\n\n`;
-  }
+    if (!hasEntries) {
+      releaseMarkdown += `- Mises à jour de maintenance et optimisations diverses.\n\n`;
+    }
 
-  if (contributors.size > 0) {
-    releaseMarkdown += `### 👥 Contributeurs\nMerci à ${Array.from(contributors).join(', ')} pour leurs contributions !\n\n`;
+    if (contributors.size > 0) {
+      releaseMarkdown += `### 👥 Contributeurs\nMerci à ${Array.from(contributors).join(', ')} pour leurs contributions !\n\n`;
+    }
   }
 
   console.log('--- Aperçu des Release Notes ---');
@@ -276,25 +298,19 @@ async function run() {
   fs.mkdirSync('build', { recursive: true });
   fs.writeFileSync(NOTES_PATH, releaseMarkdown.trim(), 'utf8');
 
-  // 2. Mise à jour CHANGELOG.md
-  let currentChangelog = '';
-  if (fs.existsSync(CHANGELOG_PATH)) {
-    currentChangelog = fs.readFileSync(CHANGELOG_PATH, 'utf8');
-  } else {
-    currentChangelog = '# Changelog\n\nToutes les modifications notables de ce projet sont consignées dans ce document.\n\n';
+  // 2. Mise à jour CHANGELOG.md si nécessaire
+  if (!alreadyInChangelog) {
+    const changelogHeader = '# Changelog\n\nToutes les modifications notables de ce projet sont consignées dans ce document.\n\n';
+    let updatedChangelog = '';
+    if (currentChangelog.startsWith('# Changelog')) {
+      const rest = currentChangelog.replace(/^# Changelog[^\n]*\n+([^\n]*\n+)?/, '');
+      updatedChangelog = `${changelogHeader}${releaseMarkdown}${rest}`;
+    } else {
+      updatedChangelog = `${changelogHeader}${releaseMarkdown}${currentChangelog}`;
+    }
+    fs.writeFileSync(CHANGELOG_PATH, updatedChangelog, 'utf8');
+    console.log(`✅ CHANGELOG.md mis à jour avec v${nextVersion}.`);
   }
-
-  // Insérer après le titre principal
-  const changelogHeader = '# Changelog\n\nToutes les modifications notables de ce projet sont consignées dans ce document.\n\n';
-  let updatedChangelog = '';
-  if (currentChangelog.startsWith('# Changelog')) {
-    const rest = currentChangelog.replace(/^# Changelog[^\n]*\n+([^\n]*\n+)?/, '');
-    updatedChangelog = `${changelogHeader}${releaseMarkdown}${rest}`;
-  } else {
-    updatedChangelog = `${changelogHeader}${releaseMarkdown}${currentChangelog}`;
-  }
-  fs.writeFileSync(CHANGELOG_PATH, updatedChangelog, 'utf8');
-  console.log(`✅ CHANGELOG.md mis à jour avec v${nextVersion}.`);
 
   // 3. Mise à jour package.json
   pkg.version = nextVersion;
