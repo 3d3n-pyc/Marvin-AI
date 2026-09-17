@@ -6,15 +6,12 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ## [v1.0.0] - 2026-09-17
 
-### 🚀 Nouvelles fonctionnalités
-- Refonte complète de la suite Marvin AI en TypeScript moderne avec JSDoc standardisé.
-- Support natif multi-navigateurs avec builds dédiés pour Google Chrome (MV3 service worker) et Mozilla Firefox (MV3 background script).
-- Intégration du système de génération automatique de titres IA via Ollama Cloud avec prompt enrichi et assainissement des balises de pensée.
+🎉 **Version initiale de Marvin AI pour MyEpitech**
 
-### ⚡ Améliorations
-- Build ultra-rapide avec esbuild (< 20ms).
-- Système de logging unifié `[Marvin]` avec horodatage et niveau d'alerte.
-- Synchronisation automatique des versions de manifest depuis `package.json`.
-
-### 🛠️ Détails techniques
-- Mise en place du pipeline de validation de changelog automatisé et fork-safe façon SkyHanni.
+### 🚀 Fonctionnalités
+- Intégration de l'assistant Marvin directement dans l'intranet [my.epitech.eu](https://my.epitech.eu) avec streaming en direct.
+- Connexion directe à Ollama Cloud pour utiliser des modèles récents (`gemma4`, `llama3`, etc.).
+- 13 outils métiers d'inspection : notes, crédits, absences, projets, logtime, événements et validations académiques.
+- Titrage automatique et contextuel des conversations par IA.
+- Interface popup de configuration pour la clé d'API et le modèle avec outil de test de connexion.
+- Compatibilité multi-navigateurs native Manifest V3 pour Google Chrome et Mozilla Firefox.
