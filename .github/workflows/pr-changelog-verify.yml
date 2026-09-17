@@ -1,0 +1,43 @@
+name: PR Changelog Verification
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify PR Title & Changelog
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Changelog Linter
+        id: linter
+        continue-on-error: true
+        run: |
+          node scripts/verify-pr-changelog.mjs
+
+      - name: Upload Verification Result Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-verification-result
+          path: build/changelog-result.json
+          retention-days: 1
+
+      - name: Enforce Linter Status
+        if: steps.linter.outcome != 'success'
+        run: |
+          echo "::error::La vérification du changelog a échoué. Consultez le rapport ou le commentaire du bot."
+          exit 1

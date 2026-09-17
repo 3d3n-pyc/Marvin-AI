@@ -1,0 +1,46 @@
+name: Changelog Review
+
+on:
+  workflow_run:
+    workflows: ["PR Changelog Verification"]
+    types: [completed]
+
+concurrency:
+  group: changelog-review-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  review:
+    name: Manage PR Changelog Comment & Label
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+
+    steps:
+      - name: Checkout base repository (main)
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Download Verification Result
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog-verification-result
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: build/
+
+      - name: Update PR Comment & Labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node scripts/manage-pr-comment.mjs build/changelog-result.json

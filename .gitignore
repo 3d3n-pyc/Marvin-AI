@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Production builds and caches
+dist/
+.build-cache/
+*.zip
+
+# Verification artifacts
+build/
+.changelog-result.json
+
+# Logs & Environment
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.DS_Store

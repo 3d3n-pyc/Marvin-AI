@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marvin - Paramètres</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header simple style Wappalyzer / Marvin -->
+    <header class="popup-header">
+      <div class="header-left">
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#00ff97" aria-hidden="true">
+            <path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/>
+            <path d="M19 14l.7 2.3L22 17l-2.3.7L19 20l-.7-2.3L16 17l2.3-.7z"/>
+          </svg>
+        </div>
+        <div class="header-titles">
+          <h1>Marvin</h1>
+          <span class="header-subtitle">Paramètres</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Formulaire direct sans onglets ni jargon -->
+    <main class="popup-body">
+      <form id="config-form">
+        <!-- Endpoint -->
+        <div class="field-group">
+          <label for="endpoint">Endpoint</label>
+          <input
+            type="url"
+            id="endpoint"
+            name="endpoint"
+            value="https://ollama.com/api/chat"
+            placeholder="https://ollama.com/api/chat"
+            required
+            spellcheck="false"
+          />
+        </div>
+
+        <!-- Modèle -->
+        <div class="field-group">
+          <label for="model">Modèle</label>
+          <input
+            type="text"
+            id="model"
+            name="model"
+            value="gemma4:31b"
+            placeholder="gemma4:31b"
+            required
+            spellcheck="false"
+          />
+        </div>
+
+        <!-- Clé -->
+        <div class="field-group">
+          <label for="api-key">Clé</label>
+          <div class="password-wrapper">
+            <input
+              type="password"
+              id="api-key"
+              name="apiKey"
+              placeholder="Clé d'accès"
+              required
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" id="toggle-key" class="btn-toggle" title="Afficher/Masquer">
+              <svg id="eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Message de feedback -->
+        <div id="status-banner" class="status-banner" style="display: none;"></div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" id="btn-test" class="btn btn-secondary">
+            Tester
+          </button>
+          <button type="submit" id="btn-save" class="btn btn-primary">
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

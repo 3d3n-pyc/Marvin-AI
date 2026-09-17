@@ -1,0 +1,19 @@
+{
+  "name": "marvin-ai",
+  "version": "1.0.0",
+  "description": "MyEpitech Marvin Assistant Firefox Extension (TypeScript + Ollama Cloud)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "lint:pr": "node scripts/verify-pr-changelog.mjs",
+    "release": "node scripts/generate-release.mjs",
+    "release:dry": "node scripts/generate-release.mjs --dry-run"
+  },
+  "devDependencies": {
+    "@types/firefox-webext-browser": "^0.0.37",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.2"
+  }
+}
