@@ -1,16 +1,15 @@
 /**
  * @fileoverview Contrôleur de l'interface utilisateur de configuration (Popup de la barre d'outils).
- * Permet à l'étudiant de définir son endpoint Ollama, sa clé d'API et son modèle préféré,
+ * Permet à l'étudiant de définir sa clé d'API blade.sh et son modèle préféré,
  * et de valider la connectivité en temps réel.
  * @module popup
  */
 
 import '../webext';
-import { getStoredConfig, saveStoredConfig } from '../config';
+import { DEFAULT_CONFIG, getStoredConfig, saveStoredConfig } from '../config';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const form = document.getElementById('config-form') as HTMLFormElement;
-  const endpointInput = document.getElementById('endpoint') as HTMLInputElement;
   const modelInput = document.getElementById('model') as HTMLInputElement;
   const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
   const toggleKeyBtn = document.getElementById('toggle-key') as HTMLButtonElement;
@@ -20,8 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 1. Chargement des préférences enregistrées
   const config = await getStoredConfig();
-  endpointInput.value = config.endpoint || 'https://ollama.com/api/chat';
-  modelInput.value = config.model || 'gemma4:31b';
+  modelInput.value = config.model || DEFAULT_CONFIG.model;
   apiKeyInput.value = config.apiKey || '';
 
   // 2. Bascule visuelle de masquage / affichage de la clé d'API
@@ -41,13 +39,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusBanner.style.display = 'block';
   }
 
-  // 3. Test de connectivité vers l'API Ollama
+  // 3. Test de connectivité vers l'API blade.sh
   btnTest.addEventListener('click', async () => {
-    const endpoint = endpointInput.value.trim();
     const model = modelInput.value.trim();
     const apiKey = apiKeyInput.value.trim();
 
-    if (!endpoint || !model || !apiKey) {
+    if (!model || !apiKey) {
       showStatus('error', 'Tous les champs sont requis pour le test');
       return;
     }
@@ -59,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const resp = await browser.runtime.sendMessage({
         type: 'TEST_CONNECTION',
-        payload: { endpoint, model, apiKey }
+        payload: { model, apiKey }
       });
 
       if (resp?.success) {
@@ -79,18 +76,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const endpoint = endpointInput.value.trim();
     const model = modelInput.value.trim();
     const apiKey = apiKeyInput.value.trim();
 
-    if (!endpoint || !model || !apiKey) {
+    if (!model || !apiKey) {
       showStatus('error', 'Tous les champs sont requis');
       return;
     }
 
     btnSave.disabled = true;
     try {
-      await saveStoredConfig({ endpoint, model, apiKey });
+      await saveStoredConfig({ model, apiKey });
       showStatus('success', '✓ Enregistré');
       setTimeout(() => {
         statusBanner.style.display = 'none';

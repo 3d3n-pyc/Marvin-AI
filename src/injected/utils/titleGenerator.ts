@@ -80,7 +80,7 @@ export function generateFastTitle(input: string): string {
  * Génère un titre concis et contextuel via une requête dédiée au modèle IA.
  *
  * @param userPrompt - Texte du message initial de l'étudiant.
- * @param modelName - Nom du modèle actif (ex: "gemma4:31b").
+ * @param modelName - Nom du modèle actif (ex: "olala-v1.0-mini-7a1b").
  * @param callOllama - Fonction passerelle vers l'API Ollama.
  * @param assistantPreview - Extrait optionnel de la réponse de Marvin pour affiner le contexte.
  * @returns Titre généré par l'IA ou `null` en cas d'échec ou de dépassement de délai.

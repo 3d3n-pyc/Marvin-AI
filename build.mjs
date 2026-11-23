@@ -70,8 +70,8 @@ const BASE_MANIFEST = {
   name: 'MyEpitech - Marvin',
   version: packageJson.version,
   description: packageJson.description || 'Assistant Marvin officiel pour MyEpitech connecté à Ollama Cloud',
-  permissions: ['storage', 'tabs'],
-  host_permissions: ['*://my.epitech.eu/*', '*://ollama.com/*'],
+  permissions: ['storage'],
+  host_permissions: ['https://my.epitech.eu/*', 'https://api.models.blade.sh/*'],
   action: {
     default_icon: {
       '16': 'icons/marvin-16.png',
@@ -83,7 +83,7 @@ const BASE_MANIFEST = {
   },
   content_scripts: [
     {
-      matches: ['*://my.epitech.eu/*'],
+      matches: ['https://my.epitech.eu/*'],
       js: ['content.js'],
       run_at: 'document_start'
     }
@@ -91,7 +91,7 @@ const BASE_MANIFEST = {
   web_accessible_resources: [
     {
       resources: ['page-hook.js'],
-      matches: ['*://my.epitech.eu/*']
+      matches: ['https://my.epitech.eu/*']
     }
   ],
   icons: {
