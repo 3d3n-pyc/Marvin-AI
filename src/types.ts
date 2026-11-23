@@ -4,26 +4,24 @@
  */
 
 /**
- * Configuration utilisateur persistée pour le client Ollama.
+ * Configuration utilisateur persistée pour le client blade.sh (API compatible OpenAI).
  */
 export interface MarvinConfig {
-  /** Clé d'API Bearer pour l'authentification auprès du service Ollama. */
+  /** Clé d'API Bearer pour l'authentification auprès du service blade.sh. */
   apiKey: string;
-  /** Identifiant du modèle LLM cible (ex: "gemma4:31b", "qwen2.5:32b"). */
+  /** Identifiant du modèle LLM cible (ex: "olala-v1.0-mini-7a1b"). */
   model: string;
-  /** Point d'entrée HTTP de l'API de chat (ex: "https://ollama.com/api/chat"). */
-  endpoint: string;
 }
 
 /**
- * Message d'échange dans une conversation Ollama / Marvin.
+ * Message d'échange dans une conversation Marvin (format compatible OpenAI).
  */
 export interface ChatMessage {
   /** Rôle de l'émetteur du message. */
   role: 'system' | 'user' | 'assistant' | 'tool';
   /** Contenu textuel du message. */
   content?: string;
-  /** Appels d'outils générés par le modèle (format Ollama conventionnel). */
+  /** Appels d'outils générés par le modèle (format OpenAI conventionnel). */
   tool_calls?: ToolCall[];
   /** Alias de tool_calls pour la compatibilité avec le frontend MyEpitech. */
   toolCalls?: ToolCall[];
@@ -65,7 +63,7 @@ export interface Conversation {
 }
 
 /**
- * Déclaration de schéma d'un outil compatible OpenAPI / Ollama tool calling.
+ * Déclaration de schéma d'un outil compatible OpenAPI / OpenAI tool calling.
  */
 export interface ToolDefinition {
   /** Type d'outil ("function"). */
@@ -86,7 +84,7 @@ export interface ToolDefinition {
 }
 
 /**
- * Corps de la requête envoyée à l'API Ollama `/api/chat`.
+ * Corps de la requête envoyée à l'API de chat blade.sh (format compatible OpenAI).
  */
 export interface OllamaChatPayload {
   /** Modèle de langage à interroger. */
@@ -102,7 +100,7 @@ export interface OllamaChatPayload {
 }
 
 /**
- * Structure de réponse renvoyée par l'API Ollama `/api/chat`.
+ * Structure de réponse renvoyée par l'API de chat blade.sh (format compatible OpenAI).
  */
 export interface OllamaChatResponse {
   /** Message résultant généré par le modèle assistant. */

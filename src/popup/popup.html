@@ -27,20 +27,6 @@
     <!-- Formulaire direct sans onglets ni jargon -->
     <main class="popup-body">
       <form id="config-form">
-        <!-- Endpoint -->
-        <div class="field-group">
-          <label for="endpoint">Endpoint</label>
-          <input
-            type="url"
-            id="endpoint"
-            name="endpoint"
-            value="https://ollama.com/api/chat"
-            placeholder="https://ollama.com/api/chat"
-            required
-            spellcheck="false"
-          />
-        </div>
-
         <!-- Modèle -->
         <div class="field-group">
           <label for="model">Modèle</label>
@@ -48,8 +34,8 @@
             type="text"
             id="model"
             name="model"
-            value="gemma4:31b"
-            placeholder="gemma4:31b"
+            value="olala-v1.0-mini-7a1b"
+            placeholder="olala-v1.0-mini-7a1b"
             required
             spellcheck="false"
           />
@@ -57,13 +43,13 @@
 
         <!-- Clé -->
         <div class="field-group">
-          <label for="api-key">Clé</label>
+          <label for="api-key">Clé API blade.sh</label>
           <div class="password-wrapper">
             <input
               type="password"
               id="api-key"
               name="apiKey"
-              placeholder="Clé d'accès"
+              placeholder="sk-blade-…"
               required
               autocomplete="off"
               spellcheck="false"
