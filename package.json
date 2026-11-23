@@ -7,6 +7,7 @@
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
     "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.mjs",
     "lint:pr": "node scripts/verify-pr-changelog.mjs",
     "release": "node scripts/generate-release.mjs",
     "release:dry": "node scripts/generate-release.mjs --dry-run"
