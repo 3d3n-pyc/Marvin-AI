@@ -6,6 +6,8 @@
  */
 
 import '../webext';
+import { DEFAULT_CONFIG } from '../config';
+import { logger } from '../logger';
 
 (function () {
   'use strict';
@@ -14,11 +16,12 @@ import '../webext';
    * Écouteur des messages `postMessage` émis par le script injecté dans le monde de la page.
    */
   window.addEventListener('message', async (event) => {
-    if (event.source !== window || !event.data) return;
+    if (event.source !== window || event.origin !== location.origin || !event.data) return;
 
     // Relais de la requête de chat vers le background script (CORS bypass)
     if (event.data.type === 'MARVIN_OLLAMA_CALL_REQ') {
       const { id, payload } = event.data;
+      if (typeof id !== 'string' && typeof id !== 'number') return;
       try {
         const response = await browser.runtime.sendMessage({
           type: 'OLLAMA_API_CALL',
@@ -45,11 +48,13 @@ import '../webext';
         window.postMessage(
           {
             type: 'MARVIN_GET_CONFIG_RES',
-            model: stored?.model || 'gemma4:31b'
+            model: stored?.model || DEFAULT_CONFIG.model
           },
           '*'
         );
-      } catch {}
+      } catch (err) {
+        logger.error('Lecture de la configuration impossible :', err);
+      }
     }
   });
 
@@ -61,7 +66,7 @@ import '../webext';
       window.postMessage(
         {
           type: 'MARVIN_CONFIG_UPDATED',
-          model: message.config?.model || 'gemma4:31b'
+          model: message.config?.model || DEFAULT_CONFIG.model
         },
         '*'
       );
