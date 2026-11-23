@@ -136,6 +136,21 @@ async function readApiError(response: Response): Promise<string> {
 }
 
 /**
+ * Détermine le code d'erreur d'un fetch rejeté : permission d'hôte absente ou réseau.
+ *
+ * @returns 'HOST_PERMISSION_MISSING' si l'accès à l'API n'est pas accordé, sinon 'NETWORK_ERROR'.
+ */
+async function networkErrorCode(): Promise<string> {
+  try {
+    if (!browser.permissions?.contains) return 'NETWORK_ERROR';
+    const granted = await browser.permissions.contains({ origins: ['https://api.models.blade.sh/*'] });
+    return granted ? 'NETWORK_ERROR' : 'HOST_PERMISSION_MISSING';
+  } catch {
+    return 'NETWORK_ERROR';
+  }
+}
+
+/**
  * Envoie une requête de chat à l'API blade.sh et convertit la réponse.
  *
  * @param apiKey - Clé API Bearer.
@@ -144,14 +159,19 @@ async function readApiError(response: Response): Promise<string> {
  * @throws {Error} Si le statut HTTP est une erreur ou si la réponse est invalide.
  */
 async function postChat(apiKey: string, body: object) {
-  const response = await fetch(API_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(body)
-  });
+  let response: Response;
+  try {
+    response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(body)
+    });
+  } catch {
+    throw new Error(await networkErrorCode());
+  }
   if (!response.ok) throw new Error(await readApiError(response));
   return fromOpenAIResponse(await response.json());
 }

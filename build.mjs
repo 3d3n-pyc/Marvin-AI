@@ -129,7 +129,7 @@ function getFirefoxManifest() {
         id: 'marvin-unlock@myepitech',
         strict_min_version: '109.0',
         data_collection_permissions: {
-          required: ['none']
+          required: ['personallyIdentifyingInfo', 'personalCommunications', 'websiteContent']
         }
       }
     }
