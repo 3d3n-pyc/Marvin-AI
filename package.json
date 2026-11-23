@@ -13,7 +13,7 @@
     "release:dry": "node scripts/generate-release.mjs --dry-run"
   },
   "devDependencies": {
-    "@types/firefox-webext-browser": "^0.0.37",
+    "@types/firefox-webext-browser": "^143.0.0",
     "esbuild": "^0.25.0",
     "typescript": "^5.8.2"
   }
