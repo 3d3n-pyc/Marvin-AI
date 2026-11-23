@@ -1,6 +1,6 @@
 {
   "name": "marvin-ai",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Smart AI assistant for MyEpitech with live tracking of marks, credits, and projects",
   "type": "module",
   "scripts": {
