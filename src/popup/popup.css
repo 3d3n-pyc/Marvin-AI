@@ -178,6 +178,24 @@ input:focus-visible {
   background: var(--err);
 }
 
+.access-notice {
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--secondary);
+}
+
+.access-notice p {
+  margin-bottom: 12px;
+}
+
+.access-notice .btn {
+  width: 100%;
+}
+
 .form-actions {
   display: flex;
   gap: 8px;

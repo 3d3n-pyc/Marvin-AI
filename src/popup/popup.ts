@@ -8,7 +8,31 @@
 import '../webext';
 import { DEFAULT_CONFIG, getStoredConfig, saveStoredConfig } from '../config';
 
+const BLADE_ORIGINS = ['https://api.models.blade.sh/*'];
+
+/**
+ * Indique si l'accès à blade.sh est autorisé (true si l'API permissions est absente).
+ *
+ * @returns Vrai si la permission d'hôte est accordée.
+ */
+async function hasBladeAccess(): Promise<boolean> {
+  if (typeof browser === 'undefined' || !browser.permissions) return true;
+  return browser.permissions.contains({ origins: BLADE_ORIGINS });
+}
+
+/**
+ * Demande l'accès à blade.sh. À appeler directement depuis un geste utilisateur.
+ *
+ * @returns Vrai si l'accès est accordé (ou si l'API permissions est absente).
+ */
+function requestBladeAccess(): Promise<boolean> {
+  if (typeof browser === 'undefined' || !browser.permissions) return Promise.resolve(true);
+  return browser.permissions.request({ origins: BLADE_ORIGINS });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  const accessNotice = document.getElementById('access-notice') as HTMLDivElement;
+  const btnGrant = document.getElementById('btn-grant') as HTMLButtonElement;
   const form = document.getElementById('config-form') as HTMLFormElement;
   const modelInput = document.getElementById('model') as HTMLInputElement;
   const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
@@ -58,6 +82,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusBanner.hidden = false;
   }
 
+  /**
+   * Affiche l'avis d'autorisation si l'accès à blade.sh n'est pas accordé.
+   */
+  async function syncAccessNotice(): Promise<void> {
+    try {
+      accessNotice.hidden = await hasBladeAccess();
+    } catch {
+      accessNotice.hidden = true;
+    }
+  }
+
+  // 2b. Autorisation d'accès (requête directe dans le geste utilisateur)
+  btnGrant.addEventListener('click', () => {
+    requestBladeAccess()
+      .then((granted) => {
+        accessNotice.hidden = granted;
+        if (granted) showStatus('success', 'Accès autorisé');
+        else showStatus('error', 'Accès refusé : Marvin ne pourra pas répondre');
+      })
+      .catch((err: any) => showStatus('error', `Erreur: ${err.message}`));
+  });
+  await syncAccessNotice();
+
   // 3. Test de connectivité vers l'API blade.sh
   btnTest.addEventListener('click', async () => {
     const model = modelInput.value.trim();
@@ -86,6 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err: any) {
       showStatus('error', `Erreur: ${err.message}`);
     } finally {
+      await syncAccessNotice();
       btnTest.disabled = false;
       btnSave.disabled = false;
     }

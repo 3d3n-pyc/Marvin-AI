@@ -15,6 +15,7 @@ class FakeWindow extends EventTarget {
 
 let buildSystemPrompt: (pageContext: string, nowDate?: Date) => string;
 let toOllamaHistory: (messages: any[]) => any[];
+let mapChatError: (m: unknown) => string;
 let parseToolArgs: (raw: unknown) => any;
 let normalizeReply: (reply: unknown) => string;
 let confirmSummary: (name: string, args: any, executed?: any[]) => string | null;
@@ -22,7 +23,7 @@ let runToolCalls: (calls: any[], messages: any[], executed: any[], hooks: any) =
 
 before(async () => {
   (globalThis as any).window = new FakeWindow();
-  ({ buildSystemPrompt, toOllamaHistory, parseToolArgs, normalizeReply, confirmSummary, runToolCalls } = await import('../src/injected/chat/engine'));
+  ({ mapChatError, buildSystemPrompt, toOllamaHistory, parseToolArgs, normalizeReply, confirmSummary, runToolCalls } = await import('../src/injected/chat/engine'));
 });
 
 describe('buildSystemPrompt', () => {
@@ -154,5 +155,17 @@ describe('confirmSummary', () => {
     assert.ok(confirmSummary('confirmAttendance', { code: '4821', eventId: 5 })!.includes('n°5'));
     assert.ok(confirmSummary('confirmAttendance', { code: '4821' })!.includes('du jour'));
     assert.equal(confirmSummary('getLogtime', {}), null);
+  });
+});
+
+describe('mapChatError', () => {
+  test('maps known codes to French messages', () => {
+    assert.match(mapChatError('HOST_PERMISSION_MISSING'), /Autoriser l'accès à blade\.sh/);
+    assert.match(mapChatError('NETWORK_ERROR'), /injoignable/);
+    assert.match(mapChatError('MISSING_API_KEY'), /clé manquante/);
+  });
+
+  test('passes unknown messages through', () => {
+    assert.equal(mapChatError('HTTP 500'), 'HTTP 500');
   });
 });

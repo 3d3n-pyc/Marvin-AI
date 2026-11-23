@@ -18,6 +18,8 @@ export interface ChatHooks {
 }
 
 /** Message d'erreur affiché quand la clé blade.sh n'est pas configurée. */
+const HOST_PERMISSION_MESSAGE = "Accès à blade.sh non autorisé : ouvre le popup de l'extension et clique sur « Autoriser l'accès à blade.sh »";
+const NETWORK_MESSAGE = 'blade.sh injoignable : vérifie ta connexion puis réessaie';
 const MISSING_KEY_MESSAGE = "clé manquante : renseigne ta clé blade.sh dans le popup de l'extension";
 
 /** Nombre maximal de cycles d'outils pour éviter une boucle infinie. */
@@ -171,13 +173,26 @@ async function chatCall(messages: ChatMessage[]): Promise<any> {
       options: { temperature: 0.1, top_p: 0.9, num_ctx: 8192 }
     });
   } catch (e: any) {
-    if (String(e && e.message).includes('MISSING_API_KEY')) throw new Error(MISSING_KEY_MESSAGE);
-    throw e;
+    throw new Error(mapChatError(e && e.message));
   }
 }
 
 /** Réponse de repli quand le modèle renvoie un texte final vide. */
 export const EMPTY_REPLY_FALLBACK = "Je n'ai pas pu générer de réponse, réessaie.";
+
+/**
+ * Traduit un code d'erreur du background en message français lisible.
+ *
+ * @param message - Message d'erreur brut.
+ * @returns Message français, ou le message d'origine s'il est inconnu.
+ */
+export function mapChatError(message: unknown): string {
+  const raw = String(message);
+  if (raw.includes('MISSING_API_KEY')) return MISSING_KEY_MESSAGE;
+  if (raw.includes('HOST_PERMISSION_MISSING')) return HOST_PERMISSION_MESSAGE;
+  if (raw.includes('NETWORK_ERROR')) return NETWORK_MESSAGE;
+  return raw;
+}
 
 /**
  * Retourne le texte final à enregistrer, avec un repli si la réponse est vide.
