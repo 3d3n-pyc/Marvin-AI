@@ -8,40 +8,25 @@
 </head>
 <body>
   <div class="popup-container">
-    <!-- Header simple style Wappalyzer / Marvin -->
     <header class="popup-header">
-      <div class="header-left">
-        <div class="logo-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#00ff97" aria-hidden="true">
-            <path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/>
-            <path d="M19 14l.7 2.3L22 17l-2.3.7L19 20l-.7-2.3L16 17l2.3-.7z"/>
-          </svg>
-        </div>
-        <div class="header-titles">
-          <h1>Marvin</h1>
-          <span class="header-subtitle">Paramètres</span>
-        </div>
-      </div>
+      <h1 class="wordmark">MARVIN<span class="wordmark-cursor">_</span></h1>
+      <span class="header-subtitle">Paramètres</span>
     </header>
 
-    <!-- Formulaire direct sans onglets ni jargon -->
     <main class="popup-body">
       <form id="config-form">
-        <!-- Modèle -->
         <div class="field-group">
           <label for="model">Modèle</label>
           <input
             type="text"
             id="model"
             name="model"
-            value="olala-v1.0-mini-7a1b"
             placeholder="olala-v1.0-mini-7a1b"
             required
             spellcheck="false"
           />
         </div>
 
-        <!-- Clé -->
         <div class="field-group">
           <label for="api-key">Clé API blade.sh</label>
           <div class="password-wrapper">
@@ -54,26 +39,36 @@
               autocomplete="off"
               spellcheck="false"
             />
-            <button type="button" id="toggle-key" class="btn-toggle" title="Afficher/Masquer">
-              <svg id="eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <button type="button" id="toggle-key" class="btn-toggle" aria-label="Afficher la clé">
+              <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
                 <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eye-off-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
+                <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
+                <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
+                <path d="m2 2 20 20"/>
               </svg>
             </button>
           </div>
+          <p class="field-hint">
+            <span id="key-saved" hidden>Clé enregistrée</span>
+            <a id="key-link" href="https://blade.sh" target="_blank" rel="noreferrer">Obtenir une clé sur blade.sh
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 3h6v6"/>
+                <path d="M10 14 21 3"/>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3"/>
+              </svg>
+            </a>
+          </p>
         </div>
 
-        <!-- Message de feedback -->
-        <div id="status-banner" class="status-banner" style="display: none;"></div>
+        <div id="status-banner" class="status-banner" role="status" hidden></div>
 
-        <!-- Actions -->
         <div class="form-actions">
-          <button type="button" id="btn-test" class="btn btn-secondary">
-            Tester
-          </button>
-          <button type="submit" id="btn-save" class="btn btn-primary">
-            Enregistrer
-          </button>
+          <button type="button" id="btn-test" class="btn btn-secondary">Tester la connexion</button>
+          <button type="submit" id="btn-save" class="btn btn-primary">Enregistrer</button>
         </div>
       </form>
     </main>

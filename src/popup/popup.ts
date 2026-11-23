@@ -16,15 +16,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnTest = document.getElementById('btn-test') as HTMLButtonElement;
   const btnSave = document.getElementById('btn-save') as HTMLButtonElement;
   const statusBanner = document.getElementById('status-banner') as HTMLDivElement;
+  const eyeIcon = document.getElementById('eye-icon') as HTMLElement;
+  const eyeOffIcon = document.getElementById('eye-off-icon') as HTMLElement;
+  const keySaved = document.getElementById('key-saved') as HTMLElement;
+  const keyLink = document.getElementById('key-link') as HTMLElement;
+
+  /**
+   * Met à jour la ligne d'aide sous le champ clé selon qu'une clé est enregistrée.
+   *
+   * @param hasKey - Vrai si une clé est stockée.
+   */
+  function updateKeyHint(hasKey: boolean): void {
+    keySaved.hidden = !hasKey;
+    keyLink.hidden = hasKey;
+  }
 
   // 1. Chargement des préférences enregistrées
   const config = await getStoredConfig();
   modelInput.value = config.model || DEFAULT_CONFIG.model;
   apiKeyInput.value = config.apiKey || '';
+  updateKeyHint(Boolean(config.apiKey));
 
   // 2. Bascule visuelle de masquage / affichage de la clé d'API
   toggleKeyBtn.addEventListener('click', () => {
-    apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+    const reveal = apiKeyInput.type === 'password';
+    apiKeyInput.type = reveal ? 'text' : 'password';
+    eyeIcon.hidden = reveal;
+    eyeOffIcon.hidden = !reveal;
+    toggleKeyBtn.setAttribute('aria-label', reveal ? 'Masquer la clé' : 'Afficher la clé');
   });
 
   /**
@@ -36,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function showStatus(type: 'success' | 'error' | 'loading', text: string): void {
     statusBanner.className = `status-banner ${type}`;
     statusBanner.textContent = text;
-    statusBanner.style.display = 'block';
+    statusBanner.hidden = false;
   }
 
   // 3. Test de connectivité vers l'API blade.sh
@@ -51,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     btnTest.disabled = true;
     btnSave.disabled = true;
-    showStatus('loading', 'Vérification en cours...');
+    showStatus('loading', 'Test en cours…');
 
     try {
       const resp = await browser.runtime.sendMessage({
@@ -60,12 +79,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       if (resp?.success) {
-        showStatus('success', '✓ Connexion établie');
+        showStatus('success', 'Connexion établie');
       } else {
-        showStatus('error', resp?.error ? `✗ ${resp.error}` : '✗ Échec de connexion');
+        showStatus('error', resp?.error ? resp.error : 'Échec de connexion');
       }
     } catch (err: any) {
-      showStatus('error', `✗ Erreur: ${err.message}`);
+      showStatus('error', `Erreur: ${err.message}`);
     } finally {
       btnTest.disabled = false;
       btnSave.disabled = false;
@@ -87,9 +106,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnSave.disabled = true;
     try {
       await saveStoredConfig({ model, apiKey });
-      showStatus('success', '✓ Enregistré');
+      showStatus('success', 'Enregistré');
+      updateKeyHint(true);
       setTimeout(() => {
-        statusBanner.style.display = 'none';
+        statusBanner.hidden = true;
       }, 3000);
     } catch (err: any) {
       showStatus('error', `Erreur: ${err.message}`);
